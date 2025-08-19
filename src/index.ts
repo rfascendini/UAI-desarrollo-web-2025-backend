@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv'; 
+import cors from 'cors';
 import { connectToMongoDB } from './libs/mongodb';
 
 
@@ -8,6 +9,9 @@ dotenv.config();
 
 // Crear una instancia de Express
 const app = express();
+
+app.use(cors());
+app.use(express.json());
 
 // Usar la variable del .env o un valor por defecto
 const PORT = process.env.PORT || 3000;
