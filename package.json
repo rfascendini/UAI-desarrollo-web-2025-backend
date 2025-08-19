@@ -4,11 +4,11 @@
     "description": "Este es el repositorio para el curso de Desarrollo Web 2025 de la Universidad Abierta Interamericana.",
     "main": "index.js",
     "scripts": {
-        "build": "tsc",
+        "build": "tsup src/index.ts --format esm --sourcemap --clean --out-dir dist",
+        "dev": "tsup src/index.ts --format esm --sourcemap --watch --onSuccess \"node dist/index.js\"",
         "watch": "tsc -w --preserveWatchOutput",
         "start": "node dist/index.js",
         "start:dev": "nodemon --watch dist --ext js,map --exec node dist/index.js",
-        "dev": "tsx watch src/index.ts",
         "check": "tsc --noEmit"
     },
     "repository": {
@@ -36,6 +36,7 @@
         "@types/node": "^24.3.0",
         "concurrently": "^9.2.0",
         "nodemon": "^3.1.10",
+        "tsup": "^8.5.0",
         "tsx": "^4.20.4",
         "typescript": "^5.9.2"
     }
