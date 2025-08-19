@@ -1,0 +1,26 @@
+{
+  "name": "tp-mern",
+  "version": "1.0.0",
+  "description": "Este es el repositorio para el curso de Desarrollo Web 2025 de la Universidad Abierta Interamericana.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rfascendini/UAI-desarrollo-web-2025.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/rfascendini/UAI-desarrollo-web-2025/issues"
+  },
+  "homepage": "https://github.com/rfascendini/UAI-desarrollo-web-2025#readme",
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0"
+  }
+}
