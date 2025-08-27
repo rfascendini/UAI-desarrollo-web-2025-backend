@@ -12,7 +12,7 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
-    password: { type: String, required: true, select: false },
+    password: { type: String, required: true },
   },
   { timestamps: true }
 );

@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv'; 
 import cors from 'cors';
 import { connectToMongoDB } from './libs/mongodb';
+import router from './routes';
 
 
 // Cargar las variables de entorno desde el archivo .env
@@ -18,6 +19,10 @@ const PORT = process.env.PORT || 3000;
 
 // Conectar a MongoDB
 connectToMongoDB();
+
+
+// Importar Routers
+app.use('/api', router);
 
 // Definir una ruta simple para probar el servidor
 app.get('/', (req, res) => {
