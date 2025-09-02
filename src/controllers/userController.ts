@@ -11,13 +11,11 @@ const getAllUsers = async (req: any, res: any) => {
 
 const getUserById = async (req: any, res: any) => {
     try {
-
         const user = await User.findById(req.params.id);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
         res.status(200).json(user);
-
     } catch (error) {
         res.status(500).json({ message: "Error fetching user", error });
     }
@@ -32,7 +30,6 @@ const createUser = async (req: any, res: any) => {
         await user.save();
 
         res.status(201).json({ message: "User created", user });
-
     } catch (error) {
         res.status(500).json({ message: "Error creating user", error });
     }

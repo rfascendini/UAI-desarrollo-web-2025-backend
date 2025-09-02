@@ -16,7 +16,6 @@ const roomSchema = new Schema<IRoom>(
       ref: "User",
       required: true,
     },
-    isActive: { type: Number, default: 1 },
   },
   {
     timestamps: true,
