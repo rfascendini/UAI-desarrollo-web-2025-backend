@@ -7,4 +7,5 @@ export interface IRoom extends Document {
   description: string;
   createdAt: Date;
   createdBy: IUser;
+  isActive: number;
 }

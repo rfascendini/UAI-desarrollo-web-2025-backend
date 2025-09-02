@@ -5,4 +5,5 @@ export interface IUser extends Document {
   lastName: string;
   email: string;
   password: string;
+  isActive: number; // 1 for active, 0 for inactive
 }

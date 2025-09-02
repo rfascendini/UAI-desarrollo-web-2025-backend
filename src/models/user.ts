@@ -13,6 +13,7 @@ const userSchema = new Schema<IUser>(
       trim: true,
     },
     password: { type: String, required: true },
+    isActive: { type: Number, default: 1 }, // 1 for active, 0 for inactive (soft delete)
   },
   { timestamps: true }
 );
