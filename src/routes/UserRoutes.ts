@@ -6,8 +6,8 @@ const UserRoutes = express.Router();
 
 UserRoutes.post('/', controllers.createUser);
 UserRoutes.patch('/:id', controllers.updateUser);
-UserRoutes.delete('/hardDelete/:id', controllers.hardDeleteUser);
-UserRoutes.patch('/softDelete/:id', controllers.softDeleteUser);
+UserRoutes.delete('/hard/:id', controllers.hardDeleteUser);
+UserRoutes.patch('/soft/:id', controllers.softDeleteUser);
 UserRoutes.get('/:id', controllers.getUserById);
 UserRoutes.get('/', controllers.getAllUsers);
 
