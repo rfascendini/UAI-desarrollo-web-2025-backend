@@ -1,9 +1,9 @@
 import { Schema, model } from "mongoose";
-import type { IRoom } from "../interfaces/IInterface";
+import type { IRoom } from "../interfaces/IRoom";
 
 const roomSchema = new Schema<IRoom>(
   {
-    roomName: { type: String, required: true, trim: true },
+    name: { type: String, required: true, trim: true },
     description: { type: String, trim: true },
     users: [
       {
@@ -16,6 +16,11 @@ const roomSchema = new Schema<IRoom>(
       ref: "User",
       required: true,
     },
+    max_players: { type: Number, default: 10 },
+    isPrivate: { type: Boolean, default: false },
+    password: { type: String },
+    serverIP: { type: String, required: true },
+    serverPort: { type: Number, required: true },
   },
   {
     timestamps: true,
