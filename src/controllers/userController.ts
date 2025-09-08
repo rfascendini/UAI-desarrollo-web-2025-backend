@@ -1,6 +1,7 @@
-import User from "../models/User";
+import User from "../models/user";
+import { Request, Response } from "express";
 
-const getAllUsers = async (req: any, res: any) => {
+const getAllUsers = async (req: Request, res: Response) => {
     try {
         const users = await User.find();
         res.status(200).json(users);
@@ -9,7 +10,7 @@ const getAllUsers = async (req: any, res: any) => {
     }
 };
 
-const getUserById = async (req: any, res: any) => {
+const getUserById = async (req: Request, res: Response) => {
     try {
         const user = await User.findById(req.params.id);
         if (!user) {
@@ -21,7 +22,7 @@ const getUserById = async (req: any, res: any) => {
     }
 };
 
-const createUser = async (req: any, res: any) => {
+const createUser = async (req: Request, res: Response) => {
     try {
         const { firstName, lastName, email, password } = req.body;
 
@@ -35,7 +36,7 @@ const createUser = async (req: any, res: any) => {
     }
 };
 
-const updateUser = async (req: any, res: any) => {
+const updateUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { firstName, lastName, email, password } = req.body;
@@ -52,7 +53,7 @@ const updateUser = async (req: any, res: any) => {
     }
 };
 
-const hardDeleteUser = async (req: any, res: any) => {
+const hardDeleteUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const user = await User.findByIdAndDelete(id);
@@ -65,7 +66,7 @@ const hardDeleteUser = async (req: any, res: any) => {
     }
 };
 
-const softDeleteUser = async (req: any, res: any) => {
+const softDeleteUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const { isActive } = req.body;

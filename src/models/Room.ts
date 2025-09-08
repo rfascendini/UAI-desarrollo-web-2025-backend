@@ -23,7 +23,7 @@ const roomSchema = new Schema<IRoom>(
     serverPort: { type: Number, required: true },
   },
   {
-    timestamps: true,
+    timestamps: true, versionKey: false
   }
 );
 
