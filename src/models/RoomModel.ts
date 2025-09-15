@@ -21,6 +21,7 @@ const roomSchema = new Schema<IRoom>(
     password: { type: String },
     serverIP: { type: String, required: true },
     serverPort: { type: Number, required: true },
+    isDeleted: { type: Boolean, default: false },
   },
   {
     timestamps: true, versionKey: false

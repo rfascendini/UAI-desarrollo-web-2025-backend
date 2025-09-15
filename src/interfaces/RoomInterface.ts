@@ -1,5 +1,5 @@
 import { Document } from "mongoose";
-import type { IUser } from "./IUser";
+import type { IUser } from "./UserInterface";
 
 export interface IRoom extends Document {
   name: String;
@@ -11,5 +11,6 @@ export interface IRoom extends Document {
   isPrivate: Boolean,
   password: String,
   serverIP: String,
-  serverPort: Number
+  serverPort: Number,
+  isDeleted: Boolean
 }
