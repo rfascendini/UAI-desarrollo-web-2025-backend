@@ -6,3 +6,7 @@ node_modules/
 
 # dist
 dist/
+
+
+#firebase-adminsdk
+src/uai-mdw-2025-firebase-adminsdk.json

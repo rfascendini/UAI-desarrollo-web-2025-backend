@@ -83,4 +83,20 @@ const softDeleteUser = async (req: Request, res: Response) => {
     }
 };
 
-export default { getAllUsers, getUserById, createUser, updateUser, softDeleteUser, hardDeleteUser };
+
+const loginUser = async (req: Request, res: Response) => {
+    // Implement login logic here
+    res.status(501).json({ message: "Login not implemented" });
+}
+
+const logoutUser = async (req: Request, res: Response) => {
+    // Implement logout logic here
+    res.status(501).json({ message: "Logout not implemented" });
+}
+
+const registerUser = async (req: Request, res: Response) => {
+    // Implement registration logic here
+    res.status(501).json({ message: "Registration not implemented" });
+}
+
+export default { getAllUsers, getUserById, createUser, updateUser, softDeleteUser, hardDeleteUser, loginUser, logoutUser, registerUser };

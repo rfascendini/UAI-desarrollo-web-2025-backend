@@ -6,4 +6,5 @@ export interface IUser extends Document {
   email: string;
   password: string;
   isActive: number; // 1 for active, 0 for inactive
+  firebaseUID: string;
 }
