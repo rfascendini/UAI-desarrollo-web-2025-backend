@@ -1,14 +1,15 @@
 import express from "express";
 
 import controllers from "../controllers/RoomController";
+import { authenticateFirebase } from "../middleware/AuthMiddleware";
 
 const RoomRoutes = express.Router();
 
-RoomRoutes.post("/", controllers.createRoom);
-RoomRoutes.patch("/:id", controllers.updateRoom)
-RoomRoutes.delete("/hard/:id", controllers.hardDeleteRoom)
-RoomRoutes.delete("/hard/:id", controllers.softDeleteRoom)
-RoomRoutes.get("/:id", controllers.getRoomById);
-RoomRoutes.get("/", controllers.getAllRooms);
+RoomRoutes.post("/", authenticateFirebase, controllers.createRoom);
+RoomRoutes.patch("/:id", authenticateFirebase, controllers.updateRoom)
+RoomRoutes.delete("/hard/:id", authenticateFirebase, controllers.hardDeleteRoom)
+RoomRoutes.delete("/hard/:id", authenticateFirebase, controllers.softDeleteRoom)
+RoomRoutes.get("/:id", authenticateFirebase, controllers.getRoomById);
+RoomRoutes.get("/", authenticateFirebase, controllers.getAllRooms);
 
 export default RoomRoutes;

@@ -1,5 +1,6 @@
 import User from "../models/UserModel";
 import { Request, Response } from "express";
+import admin from "../firebase";
 
 const getAllUsers = async (req: Request, res: Response) => {
     try {
@@ -83,20 +84,35 @@ const softDeleteUser = async (req: Request, res: Response) => {
     }
 };
 
-
 const loginUser = async (req: Request, res: Response) => {
-    // Implement login logic here
-    res.status(501).json({ message: "Login not implemented" });
-}
+    try {
+        const { email, password } = req.body;
+        const userRecord = await admin.auth().getUserByEmail(email);
+
+        res.status(200).json({ message: "Login successful", user: userRecord });
+    } catch (error) {
+        res.status(500).json({ message: "Error logging in", error });
+    }
+};
 
 const logoutUser = async (req: Request, res: Response) => {
-    // Implement logout logic here
-    res.status(501).json({ message: "Logout not implemented" });
-}
+    try {
+
+        
+
+    } catch (error) {
+        res.status(500).json({ message: "Error logging out", error });
+    }
+};
 
 const registerUser = async (req: Request, res: Response) => {
-    // Implement registration logic here
-    res.status(501).json({ message: "Registration not implemented" });
-}
+    try {
+
+
+
+    } catch (error) {
+        res.status(500).json({ message: "Error registering user", error });
+    }
+};
 
 export default { getAllUsers, getUserById, createUser, updateUser, softDeleteUser, hardDeleteUser, loginUser, logoutUser, registerUser };
