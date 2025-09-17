@@ -18,4 +18,3 @@ const validationMiddleware = (schema: Schema) => {
 };
 
 export default validationMiddleware;
-    
