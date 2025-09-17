@@ -1,6 +1,7 @@
 import User from "../models/UserModel";
 import { Request, Response } from "express";
 import admin from "../firebase";
+import axios from "axios";
 
 const getAllUsers = async (req: Request, res: Response) => {
     try {
@@ -84,34 +85,67 @@ const softDeleteUser = async (req: Request, res: Response) => {
     }
 };
 
+const registerUser = async (req: Request, res: Response) => {
+    try {
+        const { email, password, name, lastName } = req.body;
+        const userRecord = await admin.auth().createUser({
+            email,
+            password,
+        });
+        const user = new User({
+            name,
+            lastName,
+            email,
+            firebaseUid: userRecord.uid,
+        });
+        await user.save();
+        res.status(201).json({ firebaseUser: userRecord, user });
+    } catch (error) {
+        res.status(500).json({ message: "Error while registering user", error });
+    }
+};
+
 const loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
-        const userRecord = await admin.auth().getUserByEmail(email);
-
-        res.status(200).json({ message: "Login successful", user: userRecord });
-    } catch (error) {
-        res.status(500).json({ message: "Error logging in", error });
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
+        const apiKey = process.env.FIREBASE_API_KEY;
+        const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
+        const response = await axios.post(url, {
+            email,
+            password,
+            returnSecureToken: true,
+        });
+        res.json({
+            idToken: response.data.idToken,
+            refreshToken: response.data.refreshToken,
+            expiresIn: response.data.expiresIn,
+            localId: response.data.localId,
+        });
+    } catch (error: any) {
+        res.status(401).json({
+            message: "Login fallido",
+            error: error.response?.data || error.message,
+        });
     }
 };
 
 const logoutUser = async (req: Request, res: Response) => {
     try {
+        const { firebaseUid } = req.body;
 
-        
+        if (!firebaseUid) {
+            return res.status(400).json({ message: "Token is required" });
+        }
 
-    } catch (error) {
-        res.status(500).json({ message: "Error logging out", error });
-    }
-};
+        // Revocar todos los tokens de refresco → obliga a volver a iniciar sesión
+        await admin.auth().revokeRefreshTokens(firebaseUid);
 
-const registerUser = async (req: Request, res: Response) => {
-    try {
-
-
-
-    } catch (error) {
-        res.status(500).json({ message: "Error registering user", error });
+        res.status(200).json({ message: "User logged out successfully" });
+    } catch (error: any) {
+        res.status(500).json({ message: "Error while logging out", error: error.message });
     }
 };
 
