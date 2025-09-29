@@ -1,5 +1,5 @@
 import express from "express";
-import controllers from "../controllers/UserController";
+import controllers from "../controllers/userController";
 import validationMiddleware from "../middleware/ValidatorMiddleware";
 import createUserValidationScheme from "../validators/userValidation";
 import { authenticateFirebase } from "../middleware/AuthMiddleware";

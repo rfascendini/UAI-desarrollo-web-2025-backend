@@ -4,7 +4,6 @@ import cors from 'cors';
 import { connectToMongoDB } from './libs/mongodb';
 import router from './routes';
 
-
 // Cargar las variables de entorno desde el archivo .env
 dotenv.config();
 
