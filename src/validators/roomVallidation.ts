@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { join } from "path";
 
 const createRoomValidationScheme = Joi.object({
   name: Joi.string().min(3).max(15).required().messages({
@@ -12,7 +13,7 @@ const createRoomValidationScheme = Joi.object({
     "array.min": `"Users" should have a minimum length of 1`,
     "any.required": `"Users" is a required field`,
   }),
-  description: Joi.string().min(3).max(15).required().messages({
+  description: Joi.string().min(3).max(30).required().messages({
     "string.base": `"description" should be a type of 'text'`,
     "string.min": `"description" should have a minimum length of 3`,
     "string.max": `"description" should have a maximum length of 15`,
@@ -38,10 +39,14 @@ const createRoomValidationScheme = Joi.object({
     .ip({ version: ["ipv4"], cidr: "required" })
     .required()
     .messages({
-      "string.ip": "The ip field must be a valid IPv4 address",
+      "string.base": "La IP debe ser una cadena",
+      "string.empty": "La IP no puede estar vacía.",
+      "string.ip": "Formato de IP inválido. Debe ser una IPv4 válida.",
+      "any.required": "La IP es obligatoria.",
     }),
-  serverPort: Joi.number().min(1).max(4).required().messages({
+  serverPort: Joi.number().integer().min(0).max(9999).required().messages({
     "number.base": `"serverPort" should be a type of 'number'`,
+    "number.integer": `"serverPort" should be an interger 'number'`,
     "number.min": `"serverPort" should have a minimum length of 1`,
     "number.max": `"serverPort" should have a maximum length of 4`,
     "any.required": `"serverPort" is a required field`,
@@ -49,6 +54,20 @@ const createRoomValidationScheme = Joi.object({
   isDeleted: Joi.boolean().messages({
     "boolean.base": `"isDeleted" should be a type of 'boolean'`,
     "any.boolean": `"isDeleted" must be true or false`,
+  }),
+  createdAt: Joi.date().required().messages({
+    "date.base": `"createdAt" should be a type of 'Date'`,
+    "any.required": `"createdAt" is a required field`,
+  }),
+  createdBy: Joi.object({ 
+    _id: Joi.string(),
+    firstName: Joi.string(),
+    lastName: Joi.string(),
+    email: Joi.string(),
+    password: Joi.string(),
+    isActive: Joi.number(),
+    createdAt: Joi.date(),
+    updatedAt: Joi.date(),
   }),
 });
 
