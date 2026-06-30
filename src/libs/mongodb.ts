@@ -1,18 +1,23 @@
 import mongoose from "mongoose";
 
+let connectionPromise: Promise<typeof mongoose> | null = null;
+
 export async function connectToMongoDB() {
-    const uri = process.env.MONGODB_CONNECTION_STRING;
+  const uri = process.env.MONGODB_URI || process.env.MONGODB_CONNECTION_STRING;
 
-    if (!uri) {
-        throw new Error(
-            "Database environment variables are not set. Please set it in your .env file or environment variables."
-        );
-    }
+  if (!uri) {
+    throw new Error("Falta MONGODB_URI en el entorno.");
+  }
 
-    try {
-        mongoose.connect(uri);
-        console.log("Connected to MongoDB");
-    } catch (error) {
-        console.error("Failed to connect to MongoDB", error);
-    }
+  if (mongoose.connection.readyState === 1) {
+    return mongoose;
+  }
+
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(uri, {
+      dbName: process.env.MONGODB_DB_NAME || "uai_dw_tp_2025",
+    });
+  }
+
+  return connectionPromise;
 }

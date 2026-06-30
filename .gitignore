@@ -3,6 +3,8 @@ node_modules/
 
 # Environment
 .env
+.env.*
+!.env.example
 
 # dist
 dist/
@@ -10,3 +12,4 @@ dist/
 
 #firebase-adminsdk
 src/uai-mdw-2025-firebase-adminsdk.json
+src/*firebase-adminsdk*.json

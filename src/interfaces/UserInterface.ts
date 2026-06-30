@@ -3,8 +3,8 @@ import { Document } from "mongoose";
 export interface IUser extends Document {
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
-  password: string;
-  isActive: number; // 1 for active, 0 for inactive
+  isActive: number;
   firebaseUID: string;
 }

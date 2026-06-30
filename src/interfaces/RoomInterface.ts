@@ -1,16 +1,23 @@
 import { Document } from "mongoose";
 import type { IUser } from "./UserInterface";
 
+export interface IRoomParticipant {
+  user: IUser;
+  position: number;
+  joinedAt: Date;
+}
+
 export interface IRoom extends Document {
-  name: String;
-  users: IUser[]; 
-  description: String;
+  name: string;
+  users: IRoomParticipant[];
+  description?: string;
   createdAt: Date;
   createdBy: IUser;
-  max_players: Number,
-  isPrivate: Boolean,
-  password: String,
-  serverIP: String,
-  serverPort: Number,
-  isDeleted: Boolean
+  max_players: number;
+  isPrivate: boolean;
+  roomPassword?: string;
+  serverPassword?: string;
+  serverIP: string;
+  serverPort: number;
+  isDeleted: boolean;
 }

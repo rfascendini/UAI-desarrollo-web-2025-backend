@@ -1,8 +1,19 @@
 import admin from "firebase-admin";
-import serviceAccount from "./uai-mdw-2025-firebase-adminsdk.json";
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-    });
+const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+if (!admin.apps.length) {
+  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !privateKey) {
+    throw new Error("Faltan variables privadas de Firebase Admin");
+  }
+
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey,
+    }),
+  });
+}
 
 export default admin;

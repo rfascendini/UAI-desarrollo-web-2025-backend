@@ -1,35 +1,54 @@
-import express from 'express';
-import dotenv from 'dotenv'; 
-import cors from 'cors';
-import { connectToMongoDB } from './libs/mongodb';
-import router from './routes';
+import express from "express";
+import type { Request, Response, NextFunction } from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import { connectToMongoDB } from "./libs/mongodb";
+import router from "./routes";
 
-// Cargar las variables de entorno desde el archivo .env
 dotenv.config();
 
-// Crear una instancia de Express
 const app = express();
 
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Origen no permitido por CORS"));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
-// Usar la variable del .env o un valor por defecto
+app.use(async (_req, _res, next) => {
+  try {
+    await connectToMongoDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/", (_req, res) => {
+  res.send("CS1.6 Play API");
+});
+
+app.use("/api", router);
+
+app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
+  const message = error.message || "Error interno";
+  res.status(500).json({ message });
+});
+
 const PORT = process.env.PORT || 3000;
 
-// Conectar a MongoDB
-connectToMongoDB();
+if (process.env.VERCEL !== "1") {
+  app.listen(PORT);
+}
 
-
-// Importar Routers
-app.use('/api', router);
-
-// Definir una ruta simple para probar el servidor
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
-
-// Iniciar el servidor en el puerto especificado
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
+export default app;
