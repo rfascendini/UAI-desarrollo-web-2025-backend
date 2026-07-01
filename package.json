@@ -5,8 +5,9 @@
     "main": "index.js",
     "scripts": {
         "build": "tsup src/index.ts --format esm --sourcemap --clean --out-dir dist",
-        "dev": "tsup src/index.ts --format esm --sourcemap --watch --onSuccess \"node dist/index.js\"",
-        "watch": "tsc -w --preserveWatchOutput",
+        "dev": "tsx watch src/index.ts",
+        "watch": "tsx watch src/index.ts",
+        "typecheck:watch": "tsc -w --preserveWatchOutput",
         "start": "node dist/index.js",
         "start:dev": "nodemon --watch dist --ext js,map --exec node dist/index.js",
         "check": "tsc --noEmit"
@@ -24,24 +25,21 @@
     },
     "homepage": "https://github.com/rfascendini/UAI-desarrollo-web-2025#readme",
     "dependencies": {
-        "@types/cors": "^2.8.19",
-        "axios": "^1.12.2",
+        "bcryptjs": "^3.0.2",
         "cors": "^2.8.5",
         "dotenv": "^17.2.1",
         "express": "^5.1.0",
         "firebase-admin": "^13.5.0",
-        "bcryptjs": "^3.0.2",
         "joi": "^18.0.1",
         "mongoose": "^8.17.2"
     },
     "devDependencies": {
-        "@types/dotenv": "^6.1.1",
+        "@types/cors": "^2.8.19",
         "@types/express": "^5.0.3",
         "@types/node": "^24.3.0",
-        "concurrently": "^9.2.0",
         "nodemon": "^3.1.10",
         "tsup": "^8.5.0",
-        "tsx": "^4.20.4",
+        "tsx": "^4.22.4",
         "typescript": "^5.9.2"
     }
 }

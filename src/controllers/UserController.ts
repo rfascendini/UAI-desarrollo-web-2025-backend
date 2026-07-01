@@ -3,22 +3,6 @@ import admin from "../firebase";
 import Room from "../models/RoomModel";
 import User from "../models/UserModel";
 
-const publicUser = (user: { _id: unknown; firstName: string; lastName: string; username: string; email: string; firebaseUID: string }) => ({
-  id: String(user._id),
-  firstName: user.firstName,
-  lastName: user.lastName,
-  username: user.username,
-  email: user.email,
-  firebaseUID: user.firebaseUID,
-});
-
-const duplicateMessage = (error: unknown) => {
-  if (typeof error === "object" && error !== null && "code" in error && error.code === 11000) {
-    return "El email o username ya esta en uso.";
-  }
-  return "No se pudo completar la operacion.";
-};
-
 const registerUser = async (req: Request, res: Response) => {
   const { email, password, firstName, lastName, username } = req.body;
   let firebaseUID: string | null = null;
@@ -41,18 +25,43 @@ const registerUser = async (req: Request, res: Response) => {
       isActive: 1,
     });
 
-    return res.status(201).json({ user: publicUser(user) });
+    return res.status(201).json({
+      user: {
+        id: String(user._id),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        firebaseUID: user.firebaseUID,
+      },
+    });
   } catch (error) {
     if (firebaseUID) {
       await admin.auth().deleteUser(firebaseUID).catch(() => undefined);
     }
-    return res.status(400).json({ message: duplicateMessage(error) });
+
+    const mongoError = error as { code?: number };
+    if (mongoError.code === 11000) {
+      return res.status(400).json({ message: "El email o username ya esta en uso." });
+    }
+
+    return res.status(400).json({ message: "No se pudo registrar el usuario." });
   }
 };
 
 const getMe = async (req: Request, res: Response) => {
   if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
-  return res.status(200).json({ user: publicUser(req.currentUser) });
+
+  return res.status(200).json({
+    user: {
+      id: String(req.currentUser._id),
+      firstName: req.currentUser.firstName,
+      lastName: req.currentUser.lastName,
+      username: req.currentUser.username,
+      email: req.currentUser.email,
+      firebaseUID: req.currentUser.firebaseUID,
+    },
+  });
 };
 
 const updateMe = async (req: Request, res: Response) => {
@@ -71,9 +80,24 @@ const updateMe = async (req: Request, res: Response) => {
 
     if (!user) return res.status(404).json({ message: "Usuario no encontrado." });
     await admin.auth().updateUser(user.firebaseUID, { displayName: user.username });
-    return res.status(200).json({ user: publicUser(user) });
+
+    return res.status(200).json({
+      user: {
+        id: String(user._id),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        firebaseUID: user.firebaseUID,
+      },
+    });
   } catch (error) {
-    return res.status(400).json({ message: duplicateMessage(error) });
+    const mongoError = error as { code?: number };
+    if (mongoError.code === 11000) {
+      return res.status(400).json({ message: "El email o username ya esta en uso." });
+    }
+
+    return res.status(400).json({ message: "No se pudo actualizar el perfil." });
   }
 };
 

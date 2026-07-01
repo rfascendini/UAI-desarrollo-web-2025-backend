@@ -5,8 +5,8 @@ const serverIP = Joi.string().trim().ip({ version: ["ipv4"], cidr: "optional" })
 const serverPort = Joi.number().integer().min(1).max(65535).required();
 
 export const createRoomValidationScheme = Joi.object({
-  name: Joi.string().trim().min(3).max(50).required(),
-  description: Joi.string().trim().allow("").max(200).optional(),
+  name: Joi.string().trim().min(3).max(255).required(),
+  description: Joi.string().trim().allow("").max(255).optional(),
   isPrivate: Joi.boolean().default(false),
   roomPassword: Joi.when("isPrivate", {
     is: true,
@@ -19,8 +19,8 @@ export const createRoomValidationScheme = Joi.object({
 });
 
 export const updateRoomValidationScheme = Joi.object({
-  name: Joi.string().trim().min(3).max(50).optional(),
-  description: Joi.string().trim().allow("").max(200).optional(),
+  name: Joi.string().trim().min(3).max(255).optional(),
+  description: Joi.string().trim().allow("").max(255).optional(),
   isPrivate: Joi.boolean().optional(),
   roomPassword: Joi.string().allow("").min(4).max(50).optional(),
   removeRoomPassword: Joi.boolean().optional(),

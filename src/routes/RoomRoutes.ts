@@ -9,7 +9,7 @@ import {
   movePlayerValidationScheme,
   roomIdParamValidationScheme,
   updateRoomValidationScheme,
-} from "../validators/roomVallidation";
+} from "../validators/RoomValidation";
 
 const RoomRoutes = express.Router();
 

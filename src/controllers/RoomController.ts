@@ -31,7 +31,7 @@ type RoomView = {
   roomPassword?: string;
 };
 
-const populateRoom = () => [
+const roomPopulate = [
   { path: "createdBy", select: "firstName lastName username" },
   { path: "users.user", select: "firstName lastName username" },
 ];
@@ -55,8 +55,6 @@ const serializeRoom = (room: RoomView, currentUserId?: string) => {
 
   const isMember = Boolean(currentUserId && participants.some((item) => item.user.id === currentUserId));
   const isHost = Boolean(currentUserId && String(room.createdBy._id) === currentUserId);
-  const isFull = participants.length >= 10;
-
   return {
     id: String(room._id),
     name: room.name,
@@ -73,7 +71,7 @@ const serializeRoom = (room: RoomView, currentUserId?: string) => {
     hasServerPassword: Boolean(room.serverPassword),
     canEdit: isHost,
     connection:
-      isMember && isFull
+      isMember
         ? {
             serverIP: room.serverIP,
             serverPort: room.serverPort,
@@ -90,13 +88,11 @@ const serializeRoom = (room: RoomView, currentUserId?: string) => {
 const findUserActiveRoom = (userId: Types.ObjectId) =>
   Room.findOne({ isDeleted: false, "users.user": userId }).select("_id createdBy");
 
-const currentUserObjectId = (req: Request) => req.currentUser!._id as Types.ObjectId;
-
 const getAllRooms = async (req: Request, res: Response) => {
   const currentUserId = req.currentUser ? String(req.currentUser._id) : undefined;
   const rooms = await Room.find({ isDeleted: false })
     .select("+serverPassword")
-    .populate(populateRoom())
+    .populate(roomPopulate)
     .sort({ createdAt: -1 })
     .lean<RoomView[]>();
 
@@ -112,7 +108,7 @@ const getMyRoom = async (req: Request, res: Response) => {
   if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
   const room = await Room.findOne({ isDeleted: false, "users.user": req.currentUser._id })
     .select("+serverPassword")
-    .populate(populateRoom())
+    .populate(roomPopulate)
     .lean<RoomView | null>();
 
   return res.status(200).json({ room: room ? serializeRoom(room, String(req.currentUser._id)) : null });
@@ -121,7 +117,8 @@ const getMyRoom = async (req: Request, res: Response) => {
 const createRoom = async (req: Request, res: Response) => {
   if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
 
-  const activeRoom = await findUserActiveRoom(currentUserObjectId(req));
+  const userId = req.currentUser._id as Types.ObjectId;
+  const activeRoom = await findUserActiveRoom(userId);
   if (activeRoom) return res.status(409).json({ message: "Ya perteneces a una sala activa." });
 
   const roomPassword = req.body.isPrivate ? await bcrypt.hash(req.body.roomPassword, 10) : undefined;
@@ -129,8 +126,8 @@ const createRoom = async (req: Request, res: Response) => {
   const room = await Room.create({
     name: req.body.name,
     description: req.body.description || "",
-    users: [{ user: currentUserObjectId(req), position: 1 }],
-    createdBy: currentUserObjectId(req),
+    users: [{ user: userId, position: 1 }],
+    createdBy: userId,
     max_players: 10,
     isPrivate: Boolean(req.body.isPrivate),
     roomPassword,
@@ -140,7 +137,7 @@ const createRoom = async (req: Request, res: Response) => {
     isDeleted: false,
   });
 
-  const populated = await Room.findById(room._id).select("+serverPassword").populate(populateRoom()).lean<RoomView>();
+  const populated = await Room.findById(room._id).select("+serverPassword").populate(roomPopulate).lean<RoomView>();
   return res.status(201).json({ room: populated ? serializeRoom(populated, String(req.currentUser._id)) : null });
 };
 
@@ -171,14 +168,15 @@ const updateRoom = async (req: Request, res: Response) => {
   }
 
   await room.save();
-  const populated = await Room.findById(room._id).select("+serverPassword").populate(populateRoom()).lean<RoomView>();
+  const populated = await Room.findById(room._id).select("+serverPassword").populate(roomPopulate).lean<RoomView>();
   return res.status(200).json({ room: populated ? serializeRoom(populated, String(req.currentUser._id)) : null });
 };
 
 const joinRoom = async (req: Request, res: Response) => {
   if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
 
-  if (await findUserActiveRoom(currentUserObjectId(req))) {
+  const userId = req.currentUser._id as Types.ObjectId;
+  if (await findUserActiveRoom(userId)) {
     return res.status(409).json({ message: "Ya perteneces a una sala activa." });
   }
 
@@ -197,15 +195,15 @@ const joinRoom = async (req: Request, res: Response) => {
     {
       _id: req.params.id,
       isDeleted: false,
-      "users.user": { $ne: currentUserObjectId(req) },
+      "users.user": { $ne: userId },
       "users.position": { $ne: req.body.position },
       "users.9": { $exists: false },
     },
-    { $push: { users: { user: currentUserObjectId(req), position: req.body.position, joinedAt: new Date() } } },
+    { $push: { users: { user: userId, position: req.body.position, joinedAt: new Date() } } },
     { new: true }
   )
     .select("+serverPassword")
-    .populate(populateRoom())
+    .populate(roomPopulate)
     .lean<RoomView | null>();
 
   if (!updated) return res.status(409).json({ message: "La sala cambio. Actualiza e intenta de nuevo." });
@@ -250,7 +248,7 @@ const kickPlayer = async (req: Request, res: Response) => {
     { new: true }
   )
     .select("+serverPassword")
-    .populate(populateRoom())
+    .populate(roomPopulate)
     .lean<RoomView | null>();
 
   if (!updated) return res.status(404).json({ message: "Jugador no encontrado o sin permisos." });
@@ -270,7 +268,7 @@ const movePlayer = async (req: Request, res: Response) => {
   participant.position = req.body.position;
   await room.save();
 
-  const populated = await Room.findById(room._id).select("+serverPassword").populate(populateRoom()).lean<RoomView>();
+  const populated = await Room.findById(room._id).select("+serverPassword").populate(roomPopulate).lean<RoomView>();
   return res.status(200).json({ room: populated ? serializeRoom(populated, String(req.currentUser._id)) : null });
 };
 
@@ -284,7 +282,7 @@ const transferHost = async (req: Request, res: Response) => {
   room.set("createdBy", new Types.ObjectId(req.body.userId));
   await room.save();
 
-  const populated = await Room.findById(room._id).select("+serverPassword").populate(populateRoom()).lean<RoomView>();
+  const populated = await Room.findById(room._id).select("+serverPassword").populate(roomPopulate).lean<RoomView>();
   return res.status(200).json({ room: populated ? serializeRoom(populated, String(req.currentUser._id)) : null });
 };
 

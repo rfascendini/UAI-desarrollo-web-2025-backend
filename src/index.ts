@@ -17,11 +17,12 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      if (!origin || allowedOrigins.includes(origin))
+        return callback(null, true);
       return callback(new Error("Origen no permitido por CORS"));
     },
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 
@@ -35,7 +36,7 @@ app.use(async (_req, _res, next) => {
 });
 
 app.get("/", (_req, res) => {
-  res.send("CS1.6 Play API");
+  res.send("CS1.6 5YA API");
 });
 
 app.use("/api", router);

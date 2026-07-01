@@ -1,7 +1,7 @@
 import express from "express";
-import controllers from "../controllers/userController";
+import controllers from "../controllers/UserController";
 import validationMiddleware from "../middleware/ValidatorMiddleware";
-import { registerUserValidationScheme, updateProfileValidationScheme } from "../validators/userValidation";
+import { registerUserValidationScheme, updateProfileValidationScheme } from "../validators/UserValidation";
 import { authenticateFirebase } from "../middleware/AuthMiddleware";
 
 const UserRoutes = express.Router();
