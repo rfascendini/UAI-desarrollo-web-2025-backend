@@ -3,11 +3,11 @@ import type { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { connectToMongoDB } from "./libs/mongodb";
-import router from "./routes";
 
 dotenv.config();
 
 const app = express();
+let routerPromise: Promise<typeof import("./routes")> | null = null;
 
 const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
   .split(",")
@@ -33,6 +33,10 @@ app.get("/system/status", (_req, res) => {
   });
 });
 
+app.get("/", (_req, res) => {
+  res.send("CS1.6 5YA API");
+});
+
 app.use(async (_req, _res, next) => {
   try {
     await connectToMongoDB();
@@ -42,11 +46,15 @@ app.use(async (_req, _res, next) => {
   }
 });
 
-app.get("/", (_req, res) => {
-  res.send("CS1.6 5YA API");
+app.use("/api", async (req, res, next) => {
+  try {
+    routerPromise ??= import("./routes");
+    const { default: router } = await routerPromise;
+    router(req, res, next);
+  } catch (error) {
+    next(error);
+  }
 });
-
-app.use("/api", router);
 
 app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
   const message = error.message || "Error interno";
