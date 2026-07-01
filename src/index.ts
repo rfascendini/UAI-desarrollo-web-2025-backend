@@ -2,12 +2,12 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { connectToMongoDB } from "./libs/mongodb";
 
 dotenv.config();
 
 const app = express();
 let routerPromise: Promise<typeof import("./routes")> | null = null;
+let mongoPromise: Promise<typeof import("./libs/mongodb")> | null = null;
 
 const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
   .split(",")
@@ -33,12 +33,18 @@ app.get("/system/status", (_req, res) => {
   });
 });
 
+app.get("/favicon.ico", (_req, res) => {
+  res.status(204).end();
+});
+
 app.get("/", (_req, res) => {
   res.send("CS1.6 5YA API");
 });
 
 app.use(async (_req, _res, next) => {
   try {
+    mongoPromise ??= import("./libs/mongodb.js");
+    const { connectToMongoDB } = await mongoPromise;
     await connectToMongoDB();
     next();
   } catch (error) {
@@ -48,7 +54,7 @@ app.use(async (_req, _res, next) => {
 
 app.use("/api", async (req, res, next) => {
   try {
-    routerPromise ??= import("./routes");
+    routerPromise ??= import("./routes/index.js");
     const { default: router } = await routerPromise;
     router(req, res, next);
   } catch (error) {
