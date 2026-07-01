@@ -26,6 +26,13 @@ app.use(
 );
 app.use(express.json());
 
+app.get("/system/status", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "API funcionando",
+  });
+});
+
 app.use(async (_req, _res, next) => {
   try {
     await connectToMongoDB();
