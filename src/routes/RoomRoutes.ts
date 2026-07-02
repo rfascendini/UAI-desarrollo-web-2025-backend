@@ -1,7 +1,7 @@
 import express from "express";
-import controllers from "../controllers/RoomController";
-import validationMiddleware from "../middleware/ValidatorMiddleware";
-import { authenticateFirebase } from "../middleware/AuthMiddleware";
+import controllers from "../controllers/RoomController.js";
+import validationMiddleware from "../middleware/ValidatorMiddleware.js";
+import { authenticateFirebase } from "../middleware/AuthMiddleware.js";
 import {
   createRoomValidationScheme,
   joinRoomValidationScheme,
@@ -9,7 +9,7 @@ import {
   movePlayerValidationScheme,
   roomIdParamValidationScheme,
   updateRoomValidationScheme,
-} from "../validators/RoomValidation";
+} from "../validators/RoomValidation.js";
 
 const RoomRoutes = express.Router();
 

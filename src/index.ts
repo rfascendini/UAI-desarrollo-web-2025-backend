@@ -6,8 +6,8 @@ import cors from "cors";
 dotenv.config();
 
 const app = express();
-let routerPromise: Promise<typeof import("./routes")> | null = null;
-let mongoPromise: Promise<typeof import("./libs/mongodb")> | null = null;
+let routerPromise: Promise<typeof import("./routes/index.js")> | null = null;
+let mongoPromise: Promise<typeof import("./libs/mongodb.js")> | null = null;
 
 const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
   .split(",")

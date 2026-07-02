@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import type { Request, Response } from "express";
 import { Types } from "mongoose";
-import Room from "../models/RoomModel";
+import Room from "../models/RoomModel.js";
 
 type PopulatedUser = {
   _id: Types.ObjectId;

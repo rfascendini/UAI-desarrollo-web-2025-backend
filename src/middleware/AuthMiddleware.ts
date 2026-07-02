@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import admin from "../firebase";
-import User from "../models/UserModel";
+import admin from "../firebase.js";
+import User from "../models/UserModel.js";
 
 const authenticateFirebase = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;

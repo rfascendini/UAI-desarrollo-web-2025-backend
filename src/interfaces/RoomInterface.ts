@@ -1,5 +1,5 @@
 import { Document } from "mongoose";
-import type { IUser } from "./UserInterface";
+import type { IUser } from "./UserInterface.js";
 
 export interface IRoomParticipant {
   user: IUser;

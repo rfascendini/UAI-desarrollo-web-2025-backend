@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
-import admin from "../firebase";
-import Room from "../models/RoomModel";
-import User from "../models/UserModel";
+import admin from "../firebase.js";
+import Room from "../models/RoomModel.js";
+import User from "../models/UserModel.js";
 
 const registerUser = async (req: Request, res: Response) => {
   const { email, password, firstName, lastName, username } = req.body;
