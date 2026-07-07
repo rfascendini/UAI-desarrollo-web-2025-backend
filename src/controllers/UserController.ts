@@ -2,6 +2,30 @@ import type { Request, Response } from "express";
 import admin from "../firebase.js";
 import Room from "../models/RoomModel.js";
 import User from "../models/UserModel.js";
+import { errorResponse, type FieldErrors } from "../utils/responses.js";
+
+type MongoDuplicateError = {
+  code?: number;
+  keyPattern?: Record<string, number>;
+};
+
+const duplicateUserError = (error: unknown): FieldErrors | null => {
+  const mongoError = error as MongoDuplicateError;
+  if (mongoError.code !== 11000) return null;
+
+  if (mongoError.keyPattern?.email) {
+    return { email: ["Este correo electrónico ya se encuentra registrado."] };
+  }
+
+  if (mongoError.keyPattern?.username) {
+    return { username: ["Este usuario ya se encuentra registrado."] };
+  }
+
+  return {
+    email: ["El correo electrónico o el usuario ya se encuentra registrado."],
+    username: ["El correo electrónico o el usuario ya se encuentra registrado."],
+  };
+};
 
 const registerUser = async (req: Request, res: Response) => {
   const { email, password, firstName, lastName, username } = req.body;
@@ -40,17 +64,17 @@ const registerUser = async (req: Request, res: Response) => {
       await admin.auth().deleteUser(firebaseUID).catch(() => undefined);
     }
 
-    const mongoError = error as { code?: number };
-    if (mongoError.code === 11000) {
-      return res.status(400).json({ message: "El email o username ya esta en uso." });
+    const duplicateErrors = duplicateUserError(error);
+    if (duplicateErrors) {
+      return errorResponse(res, 409, "Ya existe una cuenta con esos datos.", duplicateErrors);
     }
 
-    return res.status(400).json({ message: "No se pudo registrar el usuario." });
+    return errorResponse(res, 400, "No se pudo registrar el usuario.");
   }
 };
 
 const getMe = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
 
   return res.status(200).json({
     user: {
@@ -65,7 +89,7 @@ const getMe = async (req: Request, res: Response) => {
 };
 
 const updateMe = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
 
   try {
     const user = await User.findByIdAndUpdate(
@@ -78,7 +102,7 @@ const updateMe = async (req: Request, res: Response) => {
       { new: true, runValidators: true, collation: { locale: "en", strength: 2 } }
     );
 
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado." });
+    if (!user) return errorResponse(res, 404, "Usuario no encontrado.");
     await admin.auth().updateUser(user.firebaseUID, { displayName: user.username });
 
     return res.status(200).json({
@@ -92,17 +116,17 @@ const updateMe = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    const mongoError = error as { code?: number };
-    if (mongoError.code === 11000) {
-      return res.status(400).json({ message: "El email o username ya esta en uso." });
+    const duplicateErrors = duplicateUserError(error);
+    if (duplicateErrors) {
+      return errorResponse(res, 409, "Ya existe una cuenta con esos datos.", duplicateErrors);
     }
 
-    return res.status(400).json({ message: "No se pudo actualizar el perfil." });
+    return errorResponse(res, 400, "No se pudo actualizar el perfil.");
   }
 };
 
 const deleteMe = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
 
   const userId = req.currentUser._id;
 

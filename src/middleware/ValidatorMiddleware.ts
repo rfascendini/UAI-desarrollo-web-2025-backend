@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import type { Schema, ValidationResult } from "joi";
+import { validationError, type FieldErrors } from "../utils/responses.js";
 
 const validationMiddleware = (schema: Schema, target: "body" | "params" = "body") => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -9,11 +10,16 @@ const validationMiddleware = (schema: Schema, target: "body" | "params" = "body"
     });
 
     if (error) {
-      return res.status(400).json({
-        message: "Datos invalidos",
-        detail: error.details.map((d) => d.message),
-      });
+      const errors = error.details.reduce<FieldErrors>((fieldErrors, detail) => {
+        const key = detail.path.join(".") || "general";
+        fieldErrors[key] ??= [];
+        fieldErrors[key].push(detail.message);
+        return fieldErrors;
+      }, {});
+
+      return validationError(res, errors);
     }
+
     req[target] = value;
     next();
   };

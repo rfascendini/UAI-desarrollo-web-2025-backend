@@ -2,6 +2,7 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import { errorResponse } from "./utils/responses.js";
 
 dotenv.config();
 
@@ -63,8 +64,11 @@ app.use("/api", async (req, res, next) => {
 });
 
 app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
-  const message = error.message || "Error interno";
-  res.status(500).json({ message });
+  if (process.env.NODE_ENV !== "production") {
+    console.error(error);
+  }
+
+  return errorResponse(res, 500, "No fue posible completar la operación.");
 });
 
 const PORT = process.env.PORT || 3000;

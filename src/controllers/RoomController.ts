@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import type { Request, Response } from "express";
 import { Types } from "mongoose";
 import Room from "../models/RoomModel.js";
+import { errorResponse } from "../utils/responses.js";
 
 type PopulatedUser = {
   _id: Types.ObjectId;
@@ -105,7 +106,7 @@ const getAllRooms = async (req: Request, res: Response) => {
 };
 
 const getMyRoom = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
   const room = await Room.findOne({ isDeleted: false, "users.user": req.currentUser._id })
     .select("+serverPassword")
     .populate(roomPopulate)
@@ -115,11 +116,11 @@ const getMyRoom = async (req: Request, res: Response) => {
 };
 
 const createRoom = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
 
   const userId = req.currentUser._id as Types.ObjectId;
   const activeRoom = await findUserActiveRoom(userId);
-  if (activeRoom) return res.status(409).json({ message: "Ya perteneces a una sala activa." });
+  if (activeRoom) return errorResponse(res, 409, "Ya perteneces a una sala activa.");
 
   const roomPassword = req.body.isPrivate ? await bcrypt.hash(req.body.roomPassword, 10) : undefined;
 
@@ -142,11 +143,11 @@ const createRoom = async (req: Request, res: Response) => {
 };
 
 const updateRoom = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
   const room = await Room.findOne({ _id: req.params.id, isDeleted: false }).select("+roomPassword +serverPassword");
-  if (!room) return res.status(404).json({ message: "Sala no encontrada." });
+  if (!room) return errorResponse(res, 404, "Sala no encontrada.");
   if (String(room.createdBy) !== String(req.currentUser._id)) {
-    return res.status(403).json({ message: "Solo el anfitrion puede editar la sala." });
+    return errorResponse(res, 403, "Solo el anfitrion puede editar la sala.");
   }
 
   if (req.body.name !== undefined) room.name = req.body.name;
@@ -162,7 +163,11 @@ const updateRoom = async (req: Request, res: Response) => {
   } else if (req.body.isPrivate === true) {
     room.isPrivate = true;
     if (req.body.roomPassword) room.roomPassword = await bcrypt.hash(req.body.roomPassword, 10);
-    if (!room.roomPassword) return res.status(400).json({ message: "La sala privada necesita password." });
+    if (!room.roomPassword) {
+      return errorResponse(res, 400, "La sala privada necesita contraseña.", {
+        roomPassword: ["Ingresá una contraseña para la sala privada."],
+      });
+    }
   } else if (req.body.roomPassword) {
     room.roomPassword = await bcrypt.hash(req.body.roomPassword, 10);
   }
@@ -173,22 +178,28 @@ const updateRoom = async (req: Request, res: Response) => {
 };
 
 const joinRoom = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
 
   const userId = req.currentUser._id as Types.ObjectId;
   if (await findUserActiveRoom(userId)) {
-    return res.status(409).json({ message: "Ya perteneces a una sala activa." });
+    return errorResponse(res, 409, "Ya perteneces a una sala activa.");
   }
 
   const room = await Room.findOne({ _id: req.params.id, isDeleted: false }).select("+roomPassword");
-  if (!room) return res.status(404).json({ message: "Sala no encontrada." });
-  if (room.users.length >= 10) return res.status(409).json({ message: "La sala esta llena." });
+  if (!room) return errorResponse(res, 404, "Sala no encontrada.");
+  if (room.users.length >= 10) return errorResponse(res, 409, "La sala está llena.");
   if (room.users.some((item) => item.position === req.body.position)) {
-    return res.status(409).json({ message: "Esa posicion ya esta ocupada." });
+    return errorResponse(res, 409, "Esa posición ya está ocupada.", {
+      position: ["Elegí una posición libre."],
+    });
   }
   if (room.isPrivate) {
     const ok = room.roomPassword && (await bcrypt.compare(req.body.roomPassword || "", room.roomPassword));
-    if (!ok) return res.status(403).json({ message: "No se pudo entrar a la sala privada." });
+    if (!ok) {
+      return errorResponse(res, 403, "No se pudo entrar a la sala privada.", {
+        roomPassword: ["La contraseña de la sala no es correcta."],
+      });
+    }
   }
 
   const updated = await Room.findOneAndUpdate(
@@ -206,14 +217,14 @@ const joinRoom = async (req: Request, res: Response) => {
     .populate(roomPopulate)
     .lean<RoomView | null>();
 
-  if (!updated) return res.status(409).json({ message: "La sala cambio. Actualiza e intenta de nuevo." });
+  if (!updated) return errorResponse(res, 409, "La sala cambio. Actualiza e intenta de nuevo.");
   return res.status(200).json({ room: serializeRoom(updated, String(req.currentUser._id)) });
 };
 
 const leaveRoom = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
   const room = await Room.findOne({ _id: req.params.id, isDeleted: false, "users.user": req.currentUser._id });
-  if (!room) return res.status(404).json({ message: "No perteneces a esa sala." });
+  if (!room) return errorResponse(res, 404, "No perteneces a esa sala.");
 
   if (String(room.createdBy) === String(req.currentUser._id)) {
     room.isDeleted = true;
@@ -226,20 +237,20 @@ const leaveRoom = async (req: Request, res: Response) => {
 };
 
 const closeRoom = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
   const room = await Room.findOneAndUpdate(
     { _id: req.params.id, createdBy: req.currentUser._id, isDeleted: false },
     { $set: { isDeleted: true } },
     { new: true }
   );
-  if (!room) return res.status(404).json({ message: "Sala no encontrada o sin permisos." });
+  if (!room) return errorResponse(res, 404, "Sala no encontrada o sin permisos.");
   return res.status(200).json({ message: "Sala cerrada." });
 };
 
 const kickPlayer = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
   if (req.body.userId === String(req.currentUser._id)) {
-    return res.status(400).json({ message: "No podes expulsarte como anfitrion." });
+    return errorResponse(res, 400, "No podes expulsarte como anfitrion.");
   }
 
   const updated = await Room.findOneAndUpdate(
@@ -251,20 +262,22 @@ const kickPlayer = async (req: Request, res: Response) => {
     .populate(roomPopulate)
     .lean<RoomView | null>();
 
-  if (!updated) return res.status(404).json({ message: "Jugador no encontrado o sin permisos." });
+  if (!updated) return errorResponse(res, 404, "Jugador no encontrado o sin permisos.");
   return res.status(200).json({ room: serializeRoom(updated, String(req.currentUser._id)) });
 };
 
 const movePlayer = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
   const room = await Room.findOne({ _id: req.params.id, createdBy: req.currentUser._id, isDeleted: false });
-  if (!room) return res.status(404).json({ message: "Sala no encontrada o sin permisos." });
+  if (!room) return errorResponse(res, 404, "Sala no encontrada o sin permisos.");
   if (room.users.some((item) => item.position === req.body.position)) {
-    return res.status(409).json({ message: "Esa posicion ya esta ocupada." });
+    return errorResponse(res, 409, "Esa posición ya está ocupada.", {
+      position: ["Elegí una posición libre."],
+    });
   }
 
   const participant = room.users.find((item) => String(item.user) === req.body.userId);
-  if (!participant) return res.status(404).json({ message: "Jugador no encontrado." });
+  if (!participant) return errorResponse(res, 404, "Jugador no encontrado.");
   participant.position = req.body.position;
   await room.save();
 
@@ -273,11 +286,11 @@ const movePlayer = async (req: Request, res: Response) => {
 };
 
 const transferHost = async (req: Request, res: Response) => {
-  if (!req.currentUser) return res.status(401).json({ message: "Tenes que iniciar sesion." });
+  if (!req.currentUser) return errorResponse(res, 401, "Tenés que iniciar sesión.");
   const room = await Room.findOne({ _id: req.params.id, createdBy: req.currentUser._id, isDeleted: false });
-  if (!room) return res.status(404).json({ message: "Sala no encontrada o sin permisos." });
+  if (!room) return errorResponse(res, 404, "Sala no encontrada o sin permisos.");
   if (!room.users.some((item) => String(item.user) === req.body.userId)) {
-    return res.status(400).json({ message: "Solo podes transferir a un miembro actual." });
+    return errorResponse(res, 400, "Solo podes transferir a un miembro actual.");
   }
   room.set("createdBy", new Types.ObjectId(req.body.userId));
   await room.save();

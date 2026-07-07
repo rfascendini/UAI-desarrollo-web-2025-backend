@@ -1,12 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import admin from "../firebase.js";
 import User from "../models/UserModel.js";
+import { errorResponse } from "../utils/responses.js";
 
 const authenticateFirebase = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Tenes que iniciar sesion." });
+    return errorResponse(res, 401, "Tenés que iniciar sesión.");
   }
 
   const idToken = authHeader.slice("Bearer ".length);
@@ -16,7 +17,7 @@ const authenticateFirebase = async (req: Request, res: Response, next: NextFunct
     const currentUser = await User.findOne({ firebaseUID: decodedToken.uid, isActive: 1 });
 
     if (!currentUser) {
-      return res.status(401).json({ message: "El usuario no existe o esta inactivo." });
+      return errorResponse(res, 401, "El usuario no existe o está inactivo.");
     }
 
     req.auth = {
@@ -26,7 +27,7 @@ const authenticateFirebase = async (req: Request, res: Response, next: NextFunct
     req.currentUser = currentUser;
     return next();
   } catch {
-    return res.status(401).json({ message: "Token invalido o vencido." });
+    return errorResponse(res, 401, "Tu sesión venció. Iniciá sesión nuevamente.");
   }
 };
 
