@@ -10,7 +10,8 @@ const username = Joi.string()
     "string.empty": "El usuario es obligatorio.",
     "string.min": "El usuario debe tener al menos 3 caracteres.",
     "string.max": "El usuario no puede superar los 24 caracteres.",
-    "string.pattern.base": "El usuario solo puede usar letras, números, guiones, puntos y guion bajo.",
+    "string.pattern.base":
+      "El usuario solo puede usar letras, números, guiones, puntos y guion bajo.",
     "any.required": "El usuario es obligatorio.",
   });
 
@@ -28,11 +29,15 @@ export const registerUserValidationScheme = Joi.object({
     "any.required": "El apellido es obligatorio.",
   }),
   username,
-  email: Joi.string().trim().email({ tlds: { allow: false } }).required().messages({
-    "string.empty": "El correo electrónico es obligatorio.",
-    "string.email": "Ingresá una dirección de correo válida.",
-    "any.required": "El correo electrónico es obligatorio.",
-  }),
+  email: Joi.string()
+    .trim()
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      "string.empty": "El correo electrónico es obligatorio.",
+      "string.email": "Ingresá una dirección de correo válida.",
+      "any.required": "El correo electrónico es obligatorio.",
+    }),
   password: Joi.string().min(8).max(72).required().messages({
     "string.empty": "La contraseña es obligatoria.",
     "string.min": "La contraseña debe tener al menos 8 caracteres.",
