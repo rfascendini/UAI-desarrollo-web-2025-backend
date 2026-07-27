@@ -13,6 +13,8 @@ import {
 
 const RoomRoutes = express.Router();
 
+RoomRoutes.get("/public", controllers.getPublicRooms);
+
 RoomRoutes.use(authenticateFirebase);
 
 RoomRoutes.get("/my-room", controllers.getMyRoom);

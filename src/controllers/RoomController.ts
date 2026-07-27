@@ -89,6 +89,18 @@ const serializeRoom = (room: RoomView, currentUserId?: string) => {
 const findUserActiveRoom = (userId: Types.ObjectId) =>
   Room.findOne({ isDeleted: false, "users.user": userId }).select("_id createdBy");
 
+const getPublicRooms = async (_req: Request, res: Response) => {
+  const rooms = await Room.find({ isDeleted: false })
+    .populate(roomPopulate)
+    .sort({ createdAt: -1 })
+    .lean<RoomView[]>();
+
+  const data = rooms.map((room) => serializeRoom(room));
+
+  res.setHeader("Cache-Control", "no-store");
+  return res.status(200).json({ rooms: data });
+};
+
 const getAllRooms = async (req: Request, res: Response) => {
   const currentUserId = req.currentUser ? String(req.currentUser._id) : undefined;
   const rooms = await Room.find({ isDeleted: false })
@@ -300,6 +312,7 @@ const transferHost = async (req: Request, res: Response) => {
 };
 
 export default {
+  getPublicRooms,
   getAllRooms,
   getMyRoom,
   createRoom,
